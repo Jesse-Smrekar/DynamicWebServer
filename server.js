@@ -43,22 +43,75 @@ var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 'CO',
 
 // GET request handler for '/'
 app.get('/', (req, res) => {
-		console.log( req.params );
+		//console.log( req.params );
     ReadFile(path.join(template_dir, 'index.html')).then((template) => {
         let response = template;
-       /* template = template.replace( "coal_count", db.get( ;
+	
+       promiseCoal = new Promise( (resolve, reject) => {
+	       db.all( `SELECT coal FROM Consumption WHERE year = 2017`, [], (err, data) => {
+			if (err) { return console.error(err.message); }
+			resolve(data);
+		});
+       });
        
-	
+       promiseNatural = new Promise( (resolve, reject) => {
+	       db.all( `SELECT natural_gas FROM Consumption WHERE year = 2017`, [], (err, data) => {
+			if (err) { return console.error(err.message); }
+			resolve(data);
+		});
+       });
+       
+        promiseNuclear = new Promise( (resolve, reject) => {
+	       db.all( `SELECT nuclear FROM Consumption WHERE year = 2017`, [], (err, data) => {
+			if (err) { return console.error(err.message); }
+			resolve(data);
+		});
+       });
+       
+        promisePetroleum = new Promise( (resolve, reject) => {
+	       db.all( `SELECT petroleum FROM Consumption WHERE year = 2017`, [], (err, data) => {
+			if (err) { return console.error(err.message); }
+			resolve(data);
+		});
+       });
+       
+       promiseRenewable = new Promise( (resolve, reject) => {
+	       db.all( `SELECT renewable FROM Consumption WHERE year = 2017`, [], (err, data) => {
+			if (err) { return console.error(err.message); }
+			resolve(data);
+		});
+       });
 
-       var coal_count;
-        var natural_count;
-        var nuclear_count;
-        var petroleum_count;
-        var renewable_count;
+	Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable]).then( data =>{
+		var total = 0;
+		
+		//console.log(data);
 	
+		for(var i=0; i< data[0].length; i++) total += data[0][i].coal;
+		template = template.replace( "coal_count", "coal_count =" + total );
+		total = 0;
+		
+		for(var i=0; i< data[1].length; i++) total += data[1][i].natural_gas;
+		template = template.replace( "natural_count", "natural_count =" + total );
+		total = 0;
+		
+		for(var i=0; i< data[2].length; i++) total += data[2][i].nuclear;
+		template = template.replace( "nuclear_count", "nuclear_count =" + total );
+		total = 0;
+		
+		for(var i=0; i< data[3].length; i++) total += data[3][i].petroleum;
+		template = template.replace( "petroleum_count", "petroleum_count =" + total );
+		total = 0;
+		
+		for(var i=0; i< data[4].length; i++) total += data[4][i].renewable;
+		template = template.replace( "renewable_count", "renewable_count =" + total );
+		total = 0;
+				 
+		console.log( template );
+		WriteHtml(res, response);
 	
-	*/
-        WriteHtml(res, response);
+	});
+        
     }).catch((err) => {
         Write404Error(res);
     });
