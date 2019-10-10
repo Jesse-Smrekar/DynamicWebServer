@@ -27,11 +27,37 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 app.use(express.static(public_dir));
 
 
+var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 'CO',
+				'CT', 'DC', 'DE', 'FL', 'GA',
+				'HI', 'ID', 'IL', 'IN', 'IA',
+				'KS', 'KY', 'LA', 'ME', 'MD',
+				'MA', 'MI', 'MN', 'MS', 'MO',
+				'MT', 'NE', 'NV', 'NH', 'NJ',
+				'NM', 'NY', 'NC', 'ND', 'OH',
+				'OK', 'OR', 'PA', 'RI', 'SC', 
+				'SD', 'TN', 'TX', 'UT', 'VT', 
+				'VA', 'WA', 'WV', 'WI', 'WY'
+			];
+
+
+
 // GET request handler for '/'
 app.get('/', (req, res) => {
+		console.log( req.params );
     ReadFile(path.join(template_dir, 'index.html')).then((template) => {
         let response = template;
-        // modify `response` here
+       /* template = template.replace( "coal_count", db.get( ;
+       
+	
+
+       var coal_count;
+        var natural_count;
+        var nuclear_count;
+        var petroleum_count;
+        var renewable_count;
+	
+	
+	*/
         WriteHtml(res, response);
     }).catch((err) => {
         Write404Error(res);
@@ -40,6 +66,7 @@ app.get('/', (req, res) => {
 
 // GET request handler for '/year/*'
 app.get('/year/:selected_year', (req, res) => {
+		console.log( req.params );
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
         let response = template;
         // modify `response` here
@@ -51,9 +78,12 @@ app.get('/year/:selected_year', (req, res) => {
 
 // GET request handler for '/state/*'
 app.get('/state/:selected_state', (req, res) => {
+		console.log( req.params );
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
-        // modify `response` here
+        
+	
+	
         WriteHtml(res, response);
     }).catch((err) => {
         Write404Error(res);
@@ -62,7 +92,32 @@ app.get('/state/:selected_state', (req, res) => {
 
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
+		console.log( req.params );
     ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
+        let response = template;
+        // modify `response` here
+        WriteHtml(res, response);
+    }).catch((err) => {
+        Write404Error(res);
+    });
+});
+
+// GET request handler for '/prev/*'
+app.get('/prev/:type/:current', (req, res) => {
+		console.log( req.params );
+    ReadFile(path.join(template_dir, req.params.type +'.html')).then((template) => {
+        let response = template;
+        // modify `response` here
+        WriteHtml(res, response);
+    }).catch((err) => {
+        Write404Error(res);
+    });
+});
+
+// GET request handler for '/next/*'
+app.get('/next/:type/:current', (req, res) => {
+	console.log( req.params );
+    ReadFile(path.join(template_dir, req.params.type +'.html')).then((template) => {
         let response = template;
         // modify `response` here
         WriteHtml(res, response);
