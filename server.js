@@ -27,106 +27,259 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 app.use(express.static(public_dir));
 
 
-var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 'CO',
-				'CT', 'DC', 'DE', 'FL', 'GA',
-				'HI', 'ID', 'IL', 'IN', 'IA',
-				'KS', 'KY', 'LA', 'ME', 'MD',
-				'MA', 'MI', 'MN', 'MS', 'MO',
-				'MT', 'NE', 'NV', 'NH', 'NJ',
-				'NM', 'NY', 'NC', 'ND', 'OH',
-				'OK', 'OR', 'PA', 'RI', 'SC', 
-				'SD', 'TN', 'TX', 'UT', 'VT', 
-				'VA', 'WA', 'WV', 'WI', 'WY'
+var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 
+				'CO', 'CT', 'DC', 'DE', 'FL', 
+				'GA', 'HI', 'ID', 'IL', 'IN', 
+				'IA', 'KS', 'KY', 'LA', 'ME', 
+				'MD', 'MA', 'MI', 'MN', 'MS', 
+				'MO', 'MT', 'NE', 'NV', 'NH', 
+				'NJ', 'NM', 'NY', 'NC', 'ND', 
+				'OH', 'OK', 'OR', 'PA', 'RI', 
+				'SC', 'SD', 'TN', 'TX', 'UT', 
+				'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 			];
 
 
-
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 // GET request handler for '/'
 app.get('/', (req, res) => {
-		//console.log( req.params );
-    ReadFile(path.join(template_dir, 'index.html')).then((template) => {
-        let response = template;
 	
-       promiseCoal = new Promise( (resolve, reject) => {
-	       db.all( `SELECT coal FROM Consumption WHERE year = 2017`, [], (err, data) => {
-			if (err) { return console.error(err.message); }
-			resolve(data);
+	ReadFile(path.join(template_dir, 'index.html')).then((template) => {
+		let response = template;
+	
+	       promiseCoal = new Promise( (resolve, reject) => {
+		       db.all( `SELECT coal FROM Consumption WHERE year = 2017`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+	       promiseNatural = new Promise( (resolve, reject) => {
+		       db.all( `SELECT natural_gas FROM Consumption WHERE year = 2017`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promiseNuclear = new Promise( (resolve, reject) => {
+		       db.all( `SELECT nuclear FROM Consumption WHERE year = 2017`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promisePetroleum = new Promise( (resolve, reject) => {
+		       db.all( `SELECT petroleum FROM Consumption WHERE year = 2017`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+	       promiseRenewable = new Promise( (resolve, reject) => {
+		       db.all( `SELECT renewable FROM Consumption WHERE year = 2017`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promiseTable = new Promise( (resolve, reject) => {
+			db.all( `SELECT * FROM Consumption WHERE year = 2017`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
 		});
-       });
-       
-       promiseNatural = new Promise( (resolve, reject) => {
-	       db.all( `SELECT natural_gas FROM Consumption WHERE year = 2017`, [], (err, data) => {
-			if (err) { return console.error(err.message); }
-			resolve(data);
-		});
-       });
-       
-        promiseNuclear = new Promise( (resolve, reject) => {
-	       db.all( `SELECT nuclear FROM Consumption WHERE year = 2017`, [], (err, data) => {
-			if (err) { return console.error(err.message); }
-			resolve(data);
-		});
-       });
-       
-        promisePetroleum = new Promise( (resolve, reject) => {
-	       db.all( `SELECT petroleum FROM Consumption WHERE year = 2017`, [], (err, data) => {
-			if (err) { return console.error(err.message); }
-			resolve(data);
-		});
-       });
-       
-       promiseRenewable = new Promise( (resolve, reject) => {
-	       db.all( `SELECT renewable FROM Consumption WHERE year = 2017`, [], (err, data) => {
-			if (err) { return console.error(err.message); }
-			resolve(data);
-		});
-       });
 
-	Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable]).then( data =>{
-		var total = 0;
+
+
+		Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable, promiseTable]).then( data =>{
+			var total = 0;
+			var tableString = '';
 		
-		//console.log(data);
-	
-		for(var i=0; i< data[0].length; i++) total += data[0][i].coal;
-		template = template.replace( "coal_count", "coal_count =" + total );
-		total = 0;
+			for(var i=0; i< data[0].length; i++) total += data[0][i].coal;
+			template = template.replace( "coal_count", "coal_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[1].length; i++) total += data[1][i].natural_gas;
+			template = template.replace( "natural_count", "natural_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[2].length; i++) total += data[2][i].nuclear;
+			template = template.replace( "nuclear_count", "nuclear_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[3].length; i++) total += data[3][i].petroleum;
+			template = template.replace( "petroleum_count", "petroleum_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[4].length; i++) total += data[4][i].renewable;
+			template = template.replace( "renewable_count", "renewable_count =" + total );
+			total = 0;
+			
+			for (const state in data[5]){
+					tableString += '<tr><th>' + data[5][state].state_abbreviation + '</th><th>' + data[5][state].coal + '</th><th>' + data[5][state].natural_gas + '</th><th>' + data[5][state].nuclear + '</th><th>' + data[5][state].petroleum + '</th><th>' + data[5][state].renewable + '</th></tr>\n';
+			}
+			template = template.replace( "<!-- Data to be inserted here -->", tableString );
+					
+			console.log(template);
+			response = template;
+			WriteHtml(res, response);
+
 		
-		for(var i=0; i< data[1].length; i++) total += data[1][i].natural_gas;
-		template = template.replace( "natural_count", "natural_count =" + total );
-		total = 0;
+		});
 		
-		for(var i=0; i< data[2].length; i++) total += data[2][i].nuclear;
-		template = template.replace( "nuclear_count", "nuclear_count =" + total );
-		total = 0;
-		
-		for(var i=0; i< data[3].length; i++) total += data[3][i].petroleum;
-		template = template.replace( "petroleum_count", "petroleum_count =" + total );
-		total = 0;
-		
-		for(var i=0; i< data[4].length; i++) total += data[4][i].renewable;
-		template = template.replace( "renewable_count", "renewable_count =" + total );
-		total = 0;
-				 
-		console.log( template );
-		WriteHtml(res, response);
-	
+	}).catch((err) => {
+		Write404Error(res);
 	});
-        
-    }).catch((err) => {
-        Write404Error(res);
-    });
+	
 });
+    
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // GET request handler for '/year/*'
 app.get('/year/:selected_year', (req, res) => {
-		console.log( req.params );
+	
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
         let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
-    }).catch((err) => {
-        Write404Error(res);
-    });
+	
+		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
+		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
+		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + (Number(req.params.selected_year) -1) + '</a>' );
+		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + (Number(req.params.selected_year) +1) + '</a>' );
+	
+	       promiseCoal = new Promise( (resolve, reject) => {
+		       db.all( `SELECT coal FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+	       promiseNatural = new Promise( (resolve, reject) => {
+		       db.all( `SELECT natural_gas FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promiseNuclear = new Promise( (resolve, reject) => {
+		       db.all( `SELECT nuclear FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promisePetroleum = new Promise( (resolve, reject) => {
+		       db.all( `SELECT petroleum FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+	       promiseRenewable = new Promise( (resolve, reject) => {
+		       db.all( `SELECT renewable FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promiseTable = new Promise( (resolve, reject) => {
+			db.all( `SELECT * FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+		});
+
+
+
+		Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable, promiseTable]).then( data =>{
+			var total = 0;
+			var tableString = '';
+		
+			for(var i=0; i< data[0].length; i++) total += data[0][i].coal;
+			template = template.replace( "coal_count", "coal_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[1].length; i++) total += data[1][i].natural_gas;
+			template = template.replace( "natural_count", "natural_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[2].length; i++) total += data[2][i].nuclear;
+			template = template.replace( "nuclear_count", "nuclear_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[3].length; i++) total += data[3][i].petroleum;
+			template = template.replace( "petroleum_count", "petroleum_count =" + total );
+			total = 0;
+			
+			for(var i=0; i< data[4].length; i++) total += data[4][i].renewable;
+			template = template.replace( "renewable_count", "renewable_count =" + total );
+			total = 0;
+			
+			for (const state in data[5]){
+				total = data[5][state].coal + data[5][state].natural_gas + data[5][state].nuclear + data[5][state].petroleum + data[5][state].renewable;
+				tableString += '<tr><th>' + data[5][state].state_abbreviation + '</th><th>' + data[5][state].coal + '</th><th>' + data[5][state].natural_gas + '</th><th>' + data[5][state].nuclear + '</th><th>' + data[5][state].petroleum + '</th><th>' + data[5][state].renewable + '</th><th>' + total + '</th></tr>\n';
+			}
+			template = template.replace( "<!-- Data to be inserted here -->", tableString );
+					 
+			response = template;
+
+			WriteHtml(res, response);
+		});
+		
+	}).catch((err) => {
+		Write404Error(res);
+	});
 });
 
 // GET request handler for '/state/*'
