@@ -27,7 +27,7 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 app.use(express.static(public_dir));
 
 
-var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 
+var statesList = [	'AK', 'AL', 'AZ', 'AR', 'CA', 
 				'CO', 'CT', 'DC', 'DE', 'FL', 
 				'GA', 'HI', 'ID', 'IL', 'IN', 
 				'IA', 'KS', 'KY', 'LA', 'ME', 
@@ -39,35 +39,6 @@ var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA',
 				'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 			];
 
-
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			
 // GET request handler for '/'
 app.get('/', (req, res) => {
@@ -161,32 +132,7 @@ app.get('/', (req, res) => {
 	
 });
     
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 // GET request handler for '/year/*'
 app.get('/year/:selected_year', (req, res) => {
 	
@@ -282,19 +228,176 @@ app.get('/year/:selected_year', (req, res) => {
 	});
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // GET request handler for '/state/*'
 app.get('/state/:selected_state', (req, res) => {
-		console.log( req.params );
-    ReadFile(path.join(template_dir, 'state.html')).then((template) => {
-        let response = template;
-        
+	ReadFile(path.join(template_dir, 'state.html')).then((template) => {
+		
+		let response = template;
+		var prev;
+		var next;
+		
+		prev = statesList.indexOf(req.params.selected_state) - 1;
+		if( prev < 0) prev = 50;
+
+		next = statesList.indexOf(req.params.selected_state) + 1;
+		if( next > 50 ) next = 0; 
+		
+		template = template.replace( '<h2>Yearly Snapshot</h2>', '<h2>' + req.params.selected_state + ' Yearly Snapshot</h2>');
+		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_state + ' US Energy Consumption</title>');
+		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
+		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
+		template = template.replace( 'noimage', req.params.selected_state);
 	
-	
-        WriteHtml(res, response);
-    }).catch((err) => {
-        Write404Error(res);
-    });
+	       promiseCoal = new Promise( (resolve, reject) => {
+		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+	       promiseNatural = new Promise( (resolve, reject) => {
+		       db.all( `SELECT natural_gas FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promiseNuclear = new Promise( (resolve, reject) => {
+		       db.all( `SELECT nuclear FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promisePetroleum = new Promise( (resolve, reject) => {
+		       db.all( `SELECT petroleum FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+	       promiseRenewable = new Promise( (resolve, reject) => {
+		       db.all( `SELECT renewable FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+	       });
+	       
+		promiseTable = new Promise( (resolve, reject) => {
+			db.all( `SELECT * FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+		});
+
+		Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable, promiseTable]).then( data =>{
+			var array = [];
+			var tableString = '';
+			total = 0;
+		
+			//console.log( data[0][0].coal );
+			for(var i=0; i< data[0].length; i++) array.push( data[0][i].coal );
+			template = template.replace( "coal_counts", "coal_counts = [" + array.toString() + "]" );
+			array = [];
+			
+			for(var i=0; i< data[1].length; i++) array.push( data[1][i].natural_gas );
+			template = template.replace( "natural_counts", "natural_counts = [" + array.toString() + "]" );
+			array = [];
+			
+			for(var i=0; i< data[2].length; i++) array.push( data[2][i].nuclear );
+			template = template.replace( "nuclear_counts", "nuclear_counts = [" + array.toString() + "]" );
+			array = [];
+			
+			for(var i=0; i< data[3].length; i++) array.push( data[3][i].petroleum );
+			template = template.replace( "petroleum_counts", "petroleum_counts = [" + array.toString() + "]" );
+			array = [];
+			
+			for(var i=0; i< data[4].length; i++) array.push( data[4][i].renewable );
+			template = template.replace( "renewable_counts", "renewable_counts = [" + array.toString() + "]" );
+			array = [];
+			
+			
+			for (const year in data[5]){
+				total = data[5][year].coal + data[5][year].natural_gas + data[5][year].nuclear + data[5][year].petroleum + data[5][year].renewable;
+				tableString += '<tr><th>' + data[5][year].year + '</th><th>' + data[5][year].coal + '</th><th>' + data[5][year].natural_gas + '</th><th>' + data[5][year].nuclear + '</th><th>' + data[5][year].petroleum + '</th><th>' + data[5][year].renewable + '</th><th>' + total + '</th></tr>\n';
+			}
+			template = template.replace( "<!-- Data to be inserted here -->", tableString );
+					 
+			response = template;
+			//console.log(template);
+
+			WriteHtml(res, response);
+		});
+		
+	}).catch((err) => {
+		Write404Error(res);
+	});
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
@@ -308,29 +411,11 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
     });
 });
 
-// GET request handler for '/prev/*'
-app.get('/prev/:type/:current', (req, res) => {
-		console.log( req.params );
-    ReadFile(path.join(template_dir, req.params.type +'.html')).then((template) => {
-        let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
-    }).catch((err) => {
-        Write404Error(res);
-    });
-});
 
-// GET request handler for '/next/*'
-app.get('/next/:type/:current', (req, res) => {
-	console.log( req.params );
-    ReadFile(path.join(template_dir, req.params.type +'.html')).then((template) => {
-        let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
-    }).catch((err) => {
-        Write404Error(res);
-    });
-});
+
+
+
+
 
 function ReadFile(filename) {
     return new Promise((resolve, reject) => {
