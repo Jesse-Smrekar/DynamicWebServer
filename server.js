@@ -401,15 +401,69 @@ app.get('/state/:selected_state', (req, res) => {
 
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
-		console.log( req.params );
-    ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
-        let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
-    }).catch((err) => {
-        Write404Error(res);
-    });
-});
+		//console.log( req.params );
+	ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
+		let response = template;
+		var type = req.params.selected_energy_type;
+		var result = '';
+		var total = 0;
+		var dataObj = {'AK':[], 'AL':[], 'AZ':[], 'AR':[], 'CA':[], 
+				'CO':[], 'CT':[], 'DC':[], 'DE':[], 'FL':[], 
+				'GA':[], 'HI':[], 'ID':[], 'IL':[], 'IN':[], 
+				'IA':[], 'KS':[], 'KY':[], 'LA':[], 'ME':[], 
+				'MD':[], 'MA':[], 'MI':[], 'MN':[], 'MS':[], 
+				'MO':[], 'MT':[], 'NE':[], 'NV':[], 'NH':[], 
+				'NJ':[], 'NM':[], 'NY':[], 'NC':[], 'ND':[], 
+				'OH':[], 'OK':[], 'OR':[], 'PA':[], 'RI':[], 
+				'SC':[], 'SD':[], 'TN':[], 'TX':[], 'UT':[], 
+				'VT':[], 'VA':[], 'WA':[], 'WV':[], 'WI':[], 'WY':[]
+				};
+		
+		template = template.replace( 'type_placeholder', req.params.selected_energy_type );
+      
+		promiseTable = new Promise( (resolve, reject) => {
+			db.all( `SELECT year, state_abbreviation, ` + req.params.selected_energy_type + ` FROM Consumption` , [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+		}).then( data => {
+				//console.log(data);
+			
+			for( var year =1960; year < 2018; year ++){
+					result += '<tr><th>' + year + '</th>';
+					for( var state in statesList){
+						//console.log(state);
+						for( var i=0; i < data.length; i ++){
+								//console.log( type);
+							if( data[i][type] == statesList[state]){
+								
+								//console.log(req.params.selected_energy_type);
+								if(data[i].year == year){
+									total += data[i][req.params.selected_energy_type];
+									dataObj[stateList[state]].push(data[i][req.params.selected_energy_type]);
+									console.log( 'State:', dataObj[statesList[state]] );
+									console.log( 'value:', data[i][req.params.selected_energy_type] );
+								}
+							}
+						}
+					}
+					
+					result += '<th>' + total + '</th>' ;	
+					total = 0;
+				}
+				result += '</tr>';
+				template = template.replace( '<!-- Data to be inserted here -->', result );
+				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
+				response = template;
+				WriteHtml(res, response);
+			});
+			//console.log(template);	
+			//done
+		
+	}).catch((err) => {
+		Write404Error(res);
+	});
+});//energy-type
 
 
 
