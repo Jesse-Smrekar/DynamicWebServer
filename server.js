@@ -27,7 +27,7 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 app.use(express.static(public_dir));
 
 
-var statesList = [	'AK', 'AL', 'AZ', 'AR', 'CA', 
+var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 
 				'CO', 'CT', 'DC', 'DE', 'FL', 
 				'GA', 'HI', 'ID', 'IL', 'IN', 
 				'IA', 'KS', 'KY', 'LA', 'ME', 
