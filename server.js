@@ -119,7 +119,7 @@ app.get('/', (req, res) => {
 			}
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					
-			console.log(template);
+			//console.log(template);
 			response = template;
 			WriteHtml(res, response);
 
@@ -140,10 +140,10 @@ app.get('/year/:selected_year', (req, res) => {
         let response = template;
 	
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
-		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
+		template = template.replace( /US Energy Consumption/g, req.params.selected_year + ' US Energy Consumption');
 		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + (Number(req.params.selected_year) -1) + '</a>' );
 		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + (Number(req.params.selected_year) +1) + '</a>' );
-	
+		template = template.replace( /year_placeholder/g , req.params.selected_year );
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
@@ -230,50 +230,9 @@ app.get('/year/:selected_year', (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // GET request handler for '/state/*'
 app.get('/state/:selected_state', (req, res) => {
 	ReadFile(path.join(template_dir, 'state.html')).then((template) => {
-		
-		let response = template;
 		var prev;
 		var next;
 		
@@ -288,7 +247,8 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
-	
+		template = template.replace( /state_placeholder/g, req.params.selected_state );
+
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
@@ -364,7 +324,7 @@ app.get('/state/:selected_state', (req, res) => {
 			}
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
-			response = template;
+			let response = template;
 			//console.log(template);
 
 			WriteHtml(res, response);
@@ -399,11 +359,27 @@ app.get('/state/:selected_state', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
-		//console.log( req.params );
+	
 	ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
-		let response = template;
 		var type = req.params.selected_energy_type;
 		var result = '';
 		var total = 0;
@@ -419,7 +395,8 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				'VT':[], 'VA':[], 'WA':[], 'WV':[], 'WI':[], 'WY':[]
 				};
 		
-		template = template.replace( 'type_placeholder', req.params.selected_energy_type );
+		template = template.replace( /type_placeholder/g, capitalize(req.params.selected_energy_type) );
+		
       
 		promiseTable = new Promise( (resolve, reject) => {
 			db.all( `SELECT year, state_abbreviation, ` + req.params.selected_energy_type + ` FROM Consumption` , [], (err, data) => {
@@ -454,7 +431,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				result += '</tr>';
 				template = template.replace( '<!-- Data to be inserted here -->', result );
 				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
-				response = template;
+				let response = template;
 				WriteHtml(res, response);
 			});
 			//console.log(template);	
@@ -464,6 +441,42 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 		Write404Error(res);
 	});
 });//energy-type
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -496,5 +509,7 @@ function WriteHtml(res, html) {
     res.end();
 }
 
-
+function capitalize(string){	//capitalizes the first char of a string
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
 var server = app.listen(port);

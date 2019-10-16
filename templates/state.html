@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <title>state_placeholder Consumption</title> <!-- change title to include year (e.g. 1999 US Energy Consumption) -->
+    <title>state_placeholder Energy Consumption</title> <!-- change title to include year (e.g. 1999 US Energy Consumption) -->
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://cdn.anychart.com/releases/8.7.0/js/anychart-core.min.js"></script>
     <script src="https://cdn.anychart.com/releases/8.7.0/js/anychart-cartesian.min.js"></script>
@@ -11,7 +11,7 @@
     <script type="application/javascript" src="/scripts/statevis.js"></script>
     <script type="application/javascript">
         // `state` and arrays of consumption per year --> set these variables equal to appropriate value
-        var state;
+        var state = 'state_placeholder';
         var coal_counts;  // e.g. [1234, 2567, ...]
         var natural_counts;
         var nuclear_counts;
@@ -22,7 +22,7 @@
 <body onload="Init()">
     <div id="wrapper">
         <div id="content">
-            <a href="/"><h1>state_placeholder Consumption</h1></a>
+            <a href="/"><h1>state_placeholder Energy Consumption</h1></a>
             
             <div class="spacer2"></div>
             
@@ -35,7 +35,7 @@
                     <option value="state" selected>State</option>
                     <option value="energy-type">Energy Type</option>
                 </select>
-                <label for="view_value">Select year: </label>
+                <label id="select_label" for="view_value">Select state: </label>
                 <select id="view_value">
                 </select>
                 <button type="button" onclick="SubmitView()">View</button>
@@ -78,8 +78,10 @@
                     </tr>
                 </thead>
                 <tbody>
+			<ol>
                     <!-- Data to be inserted here -->
-                </tbody>
+			</ol>
+		</tbody>
             </table>
             </div>
 
