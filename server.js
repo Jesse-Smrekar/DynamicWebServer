@@ -285,7 +285,7 @@ app.get('/state/:selected_state', (req, res) => {
 	       });
 	       
 		promiseTable = new Promise( (resolve, reject) => {
-			db.all( `SELECT * FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+			db.all( `SELECT * FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `' ORDER BY year ASC`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
@@ -399,13 +399,32 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 		
       
 		promiseTable = new Promise( (resolve, reject) => {
-			db.all( `SELECT year, state_abbreviation, ` + req.params.selected_energy_type + ` FROM Consumption` , [], (err, data) => {
+			db.all( `SELECT year, state_abbreviation, ` + req.params.selected_energy_type + ` FROM Consumption ORDER BY year ASC, state_abbreviation ASC` , [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
 		}).then( data => {
 				//console.log(data);
-			
+				
+			var counter = 0;
+			for( var i=0; i<data.length; i++){
+				if(counter == 0){
+					result += '<tr><th>' + data[i].year + '</th>';
+				}
+				
+				dataObj[statesList[i%51]].push(data[i][req.params.selected_energy_type]);
+				result += '<th>' + data[i][req.params.selected_energy_type] + '</th>';
+				total += data[i][req.params.selected_energy_type];
+				
+				if(counter == 51){
+					result += '<th>' + total + '</th></tr>';
+					total = 0;
+					counter = 0;
+				}
+				
+				counter ++;
+			}
+			/*
 			for( var year =1960; year < 2018; year ++){
 					result += '<tr><th>' + year + '</th>';
 					for( var state in statesList){
@@ -428,9 +447,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 					result += '<th>' + total + '</th>' ;	
 					total = 0;
 				}
-				result += '</tr>';
+				*/
 				template = template.replace( '<!-- Data to be inserted here -->', result );
 				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
+		
 				let response = template;
 				WriteHtml(res, response);
 			});
