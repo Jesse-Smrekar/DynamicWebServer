@@ -142,7 +142,7 @@ app.get('/year/:selected_year', (req, res) => {
 		var next;
 		prev = (Number(req.params.selected_year) -1);
 		next = (Number(req.params.selected_year) +1);
-		if (prev <= 1958) res.Write404Error(); 
+		if (prev <= 1958) Write404Error(); 
 
 		if (next > 2018) res.Write404Error(); 
 
@@ -150,8 +150,8 @@ app.get('/year/:selected_year', (req, res) => {
 
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
 		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
-		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + prev + '</a>' );
-		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + next + '</a>' );
+		template = template.replace( 'prev_placeholder">Prev</a>',  prev + '">' + prev + '</a>' );
+		template = template.replace( 'next_placeholder">Next</a>',  next + '">' + next + '</a>' );
 		template = template.replace( /US Energy Consumption/g, req.params.selected_year + ' US Energy Consumption');
 		template = template.replace( /year_placeholder/g , req.params.selected_year );
 
@@ -162,6 +162,7 @@ app.get('/year/:selected_year', (req, res) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
+		});
 	
 	       
 	    promiseNatural = new Promise( (resolve, reject) => {
@@ -240,7 +241,6 @@ app.get('/year/:selected_year', (req, res) => {
 		Write404Error(res);
 	});
 });
-});
 
 
 
@@ -261,7 +261,7 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
-		//template = template.replace( /state_placeholder/, req.params.selected_state );
+		template = template.replace( /state_placeholder/, req.params.selected_state );
 
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
