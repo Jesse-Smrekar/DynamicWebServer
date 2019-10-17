@@ -142,30 +142,27 @@ app.get('/year/:selected_year', (req, res) => {
 		var next;
 		prev = (Number(req.params.selected_year) -1);
 		next = (Number(req.params.selected_year) +1);
-		if (prev <= 1958)	res.Write404Error(); 
+		if (prev <= 1958) res.Write404Error(); 
 
 		if (next > 2018) res.Write404Error(); 
 
-	
+		
+
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
-<<<<<<< HEAD
 		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
 		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + prev + '</a>' );
 		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + next + '</a>' );
-	
-	    promiseCoal = new Promise( (resolve, reject) => {
-=======
 		template = template.replace( /US Energy Consumption/g, req.params.selected_year + ' US Energy Consumption');
-		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + (Number(req.params.selected_year) -1) + '</a>' );
-		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + (Number(req.params.selected_year) +1) + '</a>' );
 		template = template.replace( /year_placeholder/g , req.params.selected_year );
+
+	
+	   
 	       promiseCoal = new Promise( (resolve, reject) => {
->>>>>>> 59f6635c2e9a2e8a7c22704d1c781d513ce7b961
 		       db.all( `SELECT coal FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-		});
+	
 	       
 	    promiseNatural = new Promise( (resolve, reject) => {
 		       db.all( `SELECT natural_gas FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
@@ -232,17 +229,17 @@ app.get('/year/:selected_year', (req, res) => {
 				total = data[5][state].coal + data[5][state].natural_gas + data[5][state].nuclear + data[5][state].petroleum + data[5][state].renewable;
 				tableString += '<tr><th>' + data[5][state].state_abbreviation + '</th><th>' + data[5][state].coal + '</th><th>' + data[5][state].natural_gas + '</th><th>' + data[5][state].nuclear + '</th><th>' + data[5][state].petroleum + '</th><th>' + data[5][state].renewable + '</th><th>' + total + '</th></tr>\n';
 			}
+
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
-					 
 			response = template;
 			console.log(template);
-
 			WriteHtml(res, response);
 		});
 		
 	}).catch((err) => {
 		Write404Error(res);
 	});
+});
 });
 
 
@@ -264,20 +261,13 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
-<<<<<<< HEAD
-		template = template.replace( 'NoImageAlt', req.params.selected_state +' State'); // have to change to full state name
+		//template = template.replace( /state_placeholder/, req.params.selected_state );
 
-		
-=======
-		template = template.replace( /state_placeholder/g, req.params.selected_state );
-
->>>>>>> 59f6635c2e9a2e8a7c22704d1c781d513ce7b961
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
-				
-			});
+				});
 	       });
 	       
 	       promiseNatural = new Promise( (resolve, reject) => {
@@ -349,15 +339,9 @@ app.get('/state/:selected_state', (req, res) => {
 			}
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
-<<<<<<< HEAD
 			response = template;
-			console.log(template);
-=======
-			let response = template;
-			//console.log(template);
->>>>>>> 59f6635c2e9a2e8a7c22704d1c781d513ce7b961
 
-			//WriteHtml(res, response);
+			WriteHtml(res, response);
 		});
 		
 	}).catch((err) => {
