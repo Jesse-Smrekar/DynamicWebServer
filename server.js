@@ -119,7 +119,7 @@ app.get('/', (req, res) => {
 			}
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					
-			console.log(template);
+			//console.log(template);
 			response = template;
 			WriteHtml(res, response);
 
@@ -137,47 +137,55 @@ app.get('/', (req, res) => {
 app.get('/year/:selected_year', (req, res) => {
 	
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
-        let response = template;
+		let response = template;
+		var prev;
+		var next;
+		prev = (Number(req.params.selected_year) -1);
+		next = (Number(req.params.selected_year) +1);
+		if (prev <= 1958)	res.Write404Error(); 
+
+		if (next > 2018) res.Write404Error(); 
+
 	
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
 		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
-		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + (Number(req.params.selected_year) -1) + '</a>' );
-		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + (Number(req.params.selected_year) +1) + '</a>' );
+		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + prev + '</a>' );
+		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + next + '</a>' );
 	
-	       promiseCoal = new Promise( (resolve, reject) => {
+	    promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-	       });
+		});
 	       
-	       promiseNatural = new Promise( (resolve, reject) => {
+	    promiseNatural = new Promise( (resolve, reject) => {
 		       db.all( `SELECT natural_gas FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-	       });
+	    });
 	       
 		promiseNuclear = new Promise( (resolve, reject) => {
 		       db.all( `SELECT nuclear FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-	       });
+		});
 	       
 		promisePetroleum = new Promise( (resolve, reject) => {
 		       db.all( `SELECT petroleum FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-	       });
+	    });
 	       
-	       promiseRenewable = new Promise( (resolve, reject) => {
+	    promiseRenewable = new Promise( (resolve, reject) => {
 		       db.all( `SELECT renewable FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
-			});
-	       });
+				});
+	 	});
 	       
 		promiseTable = new Promise( (resolve, reject) => {
 			db.all( `SELECT * FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
@@ -219,6 +227,7 @@ app.get('/year/:selected_year', (req, res) => {
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
 			response = template;
+			console.log(template);
 
 			WriteHtml(res, response);
 		});
@@ -227,45 +236,6 @@ app.get('/year/:selected_year', (req, res) => {
 		Write404Error(res);
 	});
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -288,11 +258,14 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
-	
+		template = template.replace( 'NoImageAlt', req.params.selected_state +' State'); // have to change to full state name
+
+		
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
+				
 			});
 	       });
 	       
@@ -321,13 +294,14 @@ app.get('/state/:selected_state', (req, res) => {
 		       db.all( `SELECT renewable FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
-			});
+				});
 	       });
 	       
 		promiseTable = new Promise( (resolve, reject) => {
 			db.all( `SELECT * FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
+			//	console.log(data);
 			});
 		});
 
@@ -365,9 +339,9 @@ app.get('/state/:selected_state', (req, res) => {
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
 			response = template;
-			//console.log(template);
+			console.log(template);
 
-			WriteHtml(res, response);
+			//WriteHtml(res, response);
 		});
 		
 	}).catch((err) => {
@@ -410,12 +384,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
         Write404Error(res);
     });
 });
-
-
-
-
-
-
 
 function ReadFile(filename) {
     return new Promise((resolve, reject) => {
