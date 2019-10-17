@@ -19,12 +19,15 @@ function Init() {
 function SearchTypeChanged() {
     var view_type = document.getElementById('view_type');
     if (view_type.value === 'year') {
+	document.getElementById('select_label').innerText = 'Select year:';
         PopulateSearchValueYears();
     }
     else if (view_type.value === 'state') {
+	document.getElementById('select_label').innerText = 'Select state:';
         PopulateSearchValueStates();
     }
     else {
+	document.getElementById('select_label').innerText = 'Select type:';
         PopulateSearchValueEnergyType();
     }
 }

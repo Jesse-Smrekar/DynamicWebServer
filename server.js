@@ -148,11 +148,19 @@ app.get('/year/:selected_year', (req, res) => {
 
 	
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
+<<<<<<< HEAD
 		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
 		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + prev + '</a>' );
 		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + next + '</a>' );
 	
 	    promiseCoal = new Promise( (resolve, reject) => {
+=======
+		template = template.replace( /US Energy Consumption/g, req.params.selected_year + ' US Energy Consumption');
+		template = template.replace( 'prev_placeholder">Prev</a>',  (Number(req.params.selected_year) -1) + '">' + (Number(req.params.selected_year) -1) + '</a>' );
+		template = template.replace( 'next_placeholder">Next</a>',  (Number(req.params.selected_year) +1) + '">' + (Number(req.params.selected_year) +1) + '</a>' );
+		template = template.replace( /year_placeholder/g , req.params.selected_year );
+	       promiseCoal = new Promise( (resolve, reject) => {
+>>>>>>> 59f6635c2e9a2e8a7c22704d1c781d513ce7b961
 		       db.all( `SELECT coal FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
@@ -242,8 +250,6 @@ app.get('/year/:selected_year', (req, res) => {
 // GET request handler for '/state/*'
 app.get('/state/:selected_state', (req, res) => {
 	ReadFile(path.join(template_dir, 'state.html')).then((template) => {
-		
-		let response = template;
 		var prev;
 		var next;
 		
@@ -258,9 +264,14 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
+<<<<<<< HEAD
 		template = template.replace( 'NoImageAlt', req.params.selected_state +' State'); // have to change to full state name
 
 		
+=======
+		template = template.replace( /state_placeholder/g, req.params.selected_state );
+
+>>>>>>> 59f6635c2e9a2e8a7c22704d1c781d513ce7b961
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
 				if (err) { return console.error(err.message); }
@@ -338,8 +349,13 @@ app.get('/state/:selected_state', (req, res) => {
 			}
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
+<<<<<<< HEAD
 			response = template;
 			console.log(template);
+=======
+			let response = template;
+			//console.log(template);
+>>>>>>> 59f6635c2e9a2e8a7c22704d1c781d513ce7b961
 
 			//WriteHtml(res, response);
 		});
@@ -373,17 +389,124 @@ app.get('/state/:selected_state', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
-		console.log( req.params );
-    ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
-        let response = template;
-        // modify `response` here
-        WriteHtml(res, response);
-    }).catch((err) => {
-        Write404Error(res);
-    });
-});
+	
+	ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
+		var type = req.params.selected_energy_type;
+		var result = '';
+		var total = 0;
+		var dataObj = {'AK':[], 'AL':[], 'AZ':[], 'AR':[], 'CA':[], 
+				'CO':[], 'CT':[], 'DC':[], 'DE':[], 'FL':[], 
+				'GA':[], 'HI':[], 'ID':[], 'IL':[], 'IN':[], 
+				'IA':[], 'KS':[], 'KY':[], 'LA':[], 'ME':[], 
+				'MD':[], 'MA':[], 'MI':[], 'MN':[], 'MS':[], 
+				'MO':[], 'MT':[], 'NE':[], 'NV':[], 'NH':[], 
+				'NJ':[], 'NM':[], 'NY':[], 'NC':[], 'ND':[], 
+				'OH':[], 'OK':[], 'OR':[], 'PA':[], 'RI':[], 
+				'SC':[], 'SD':[], 'TN':[], 'TX':[], 'UT':[], 
+				'VT':[], 'VA':[], 'WA':[], 'WV':[], 'WI':[], 'WY':[]
+				};
+		
+		template = template.replace( /type_placeholder/g, capitalize(req.params.selected_energy_type) );
+		
+      
+		promiseTable = new Promise( (resolve, reject) => {
+			db.all( `SELECT year, state_abbreviation, ` + req.params.selected_energy_type + ` FROM Consumption` , [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+		}).then( data => {
+				//console.log(data);
+			
+			for( var year =1960; year < 2018; year ++){
+					result += '<tr><th>' + year + '</th>';
+					for( var state in statesList){
+						//console.log(state);
+						for( var i=0; i < data.length; i ++){
+								//console.log( type);
+							if( data[i][type] == statesList[state]){
+								
+								//console.log(req.params.selected_energy_type);
+								if(data[i].year == year){
+									total += data[i][req.params.selected_energy_type];
+									dataObj[stateList[state]].push(data[i][req.params.selected_energy_type]);
+									console.log( 'State:', dataObj[statesList[state]] );
+									console.log( 'value:', data[i][req.params.selected_energy_type] );
+								}
+							}
+						}
+					}
+					
+					result += '<th>' + total + '</th>' ;	
+					total = 0;
+				}
+				result += '</tr>';
+				template = template.replace( '<!-- Data to be inserted here -->', result );
+				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
+				let response = template;
+				WriteHtml(res, response);
+			});
+			//console.log(template);	
+			//done
+		
+	}).catch((err) => {
+		Write404Error(res);
+	});
+});//energy-type
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function ReadFile(filename) {
     return new Promise((resolve, reject) => {
@@ -410,5 +533,7 @@ function WriteHtml(res, html) {
     res.end();
 }
 
-
+function capitalize(string){	//capitalizes the first char of a string
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
 var server = app.listen(port);

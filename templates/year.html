@@ -12,7 +12,7 @@
     <script type="application/javascript" src="/scripts/yearvis.js"></script>
     <script type="application/javascript">
         // `year` and total counts for entire US --> set these variables equal to appropriate value
-        var year;
+        var year = 'year_placeholder';
         var coal_count;
         var natural_count;
         var nuclear_count;
@@ -36,7 +36,7 @@
                     <option value="state">State</option>
                     <option value="energy-type">Energy Type</option>
                 </select>
-                <label for="view_value">Select year: </label>
+                <label id="select_label" for="view_value">Select year: </label>
                 <select id="view_value">
                 </select>
                 <button type="button" onclick="SubmitView()">View</button>
