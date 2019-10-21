@@ -269,7 +269,7 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
-		template = template.replace( /state_placeholder/, req.params.selected_state );
+		template = template.replace( /state_placeholder/g, req.params.selected_state );
 
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
