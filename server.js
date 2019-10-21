@@ -38,7 +38,15 @@ var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA',
 				'SC', 'SD', 'TN', 'TX', 'UT', 
 				'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 			];
+var energy_list = [ 'coal', 'natural_gas', 'nuclear', 'petroleum', 'renewable' ];
 
+var energy_types = {
+    coal: 'Coal',
+    natural_gas: 'Natural Gas',
+    nuclear: 'Nuclear',
+    petroleum: 'Petroleum',
+    renewable: 'Renewable'
+};
 			
 // GET request handler for '/'
 app.get('/', (req, res) => {
@@ -418,58 +426,51 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				resolve(data);
 			});
 		}).then( data => {
-				//console.log(data);
 				
-			var counter = 0;
-			for( var i=0; i<data.length; i++){
-				if(counter == 0){
-					result += '<tr><th>' + data[i].year + '</th>';
-				}
-				
-				dataObj[statesList[i%51]].push(data[i][req.params.selected_energy_type]);
-				result += '<th>' + data[i][req.params.selected_energy_type] + '</th>';
-				total += data[i][req.params.selected_energy_type];
-				
-				if(counter == 51){
-					result += '<th>' + total + '</th></tr>';
-					total = 0;
-					counter = 0;
-				}
-				
-				counter ++;
-			}
-			/*
-			for( var year =1960; year < 2018; year ++){
-					result += '<tr><th>' + year + '</th>';
-					for( var state in statesList){
-						//console.log(state);
-						for( var i=0; i < data.length; i ++){
-								//console.log( type);
-							if( data[i][type] == statesList[state]){
-								
-								//console.log(req.params.selected_energy_type);
-								if(data[i].year == year){
-									total += data[i][req.params.selected_energy_type];
-									dataObj[stateList[state]].push(data[i][req.params.selected_energy_type]);
-									console.log( 'State:', dataObj[statesList[state]] );
-									console.log( 'value:', data[i][req.params.selected_energy_type] );
-								}
-							}
-						}
+				var counter = 0;
+				var prevYear = 1960;
+				for( var i=0; i<data.length; i++){
+					
+					if( data[i].year != prevYear ){
+						//console.log( "last state:" + data[i].state_abbreviation );
+						result += '<th>' + total + '</th></tr>';
+						total = 0;
+						counter = 0;
+						prevYear = data[i].year;
 					}
 					
-					result += '<th>' + total + '</th>' ;	
-					total = 0;
+					if(counter == 0){
+						result += '<tr><th>' + data[i].year + '</th>';
+						counter ++;
+					}
+					
+					dataObj[statesList[i%51]].push(data[i][req.params.selected_energy_type]);
+					result += '<th>' + data[i][req.params.selected_energy_type] + '</th>';
+					total += data[i][req.params.selected_energy_type];
+					
 				}
-				*/
+				result += '<th>' + total + '</th></tr>';
+
 				template = template.replace( '<!-- Data to be inserted here -->', result );
 				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
+				
+				var curr = 0;
+				for(let i=0; i < energy_list.length; i++){
+					if(energy_list[i] == req.params.selected_energy_type){
+						curr = i;
+						console.log( "curr:" + req.params.selected_energy_type);
+					}	
+				}
+				template = template.replace( /prev_placeholder/g, energy_list[(curr + 4) % 5] );
+				template = template.replace( /next_placeholder/g, energy_list[(curr + 1) % 5] );
+				template = template.replace( 'prev_button', energy_types[energy_list[(curr + 4) % 5]] );
+				template = template.replace( 'next_button', energy_types[energy_list[(curr + 1) % 5]] );
+
+				
 		
 				let response = template;
 				WriteHtml(res, response);
 			});
-			//console.log(template);	
-			//done
 		
 	}).catch((err) => {
 		Write404Error(res);
