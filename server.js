@@ -148,11 +148,15 @@ app.get('/year/:selected_year', (req, res) => {
 		let response = template;
 		var prev;
 		var next;
-		prev = (Number(req.params.selected_year) -1);
-		next = (Number(req.params.selected_year) +1);
-		if (prev <= 1958) Write404Error(); 
+		prev = (Number(req.params.selected_year) - 1);
+		next = (Number(req.params.selected_year) + 1);
+		if (prev < 1960) {
+			prev = 2017;
+		}
 
-		if (next > 2018) res.Write404Error(); 
+		if (next > 2017){
+			next = 1960;
+		}			
 
 		
 
@@ -241,7 +245,7 @@ app.get('/year/:selected_year', (req, res) => {
 
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 			response = template;
-			console.log(template);
+			//console.log(template);
 			WriteHtml(res, response);
 		});
 		
