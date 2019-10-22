@@ -261,6 +261,7 @@ app.get('/state/:selected_state', (req, res) => {
 	ReadFile(path.join(template_dir, 'state.html')).then((template) => {
 		var prev;
 		var next;
+
 		
 		prev = statesList.indexOf(req.params.selected_state) - 1;
 		if( prev < 0) prev = 50;
@@ -463,7 +464,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				for(let i=0; i < energy_list.length; i++){
 					if(energy_list[i] == req.params.selected_energy_type){
 						curr = i;
-						console.log( "curr:" + req.params.selected_energy_type);
+						// console.log( "curr:" + req.params.selected_energy_type);
 					}	
 				}
 				template = template.replace( /prev_placeholder/g, energy_list[(curr + 4) % 5] );
@@ -471,6 +472,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				template = template.replace( 'prev_button', energy_types[energy_list[(curr + 4) % 5]] );
 				template = template.replace( 'next_button', energy_types[energy_list[(curr + 1) % 5]] );
 				template = template.replace( 'No Image', 'Image of ' + req.params.selected_energy_type );
+				template = template.replace( 'Consumption Snapshot', capitalize(req.params.selected_energy_type) + ' Consumption Snapshot');
 
 				
 		
