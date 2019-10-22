@@ -273,6 +273,7 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
+		template = template.replace( 'NoImageAlt', 'State image of '+ req.params.selected_state);
 		template = template.replace( /state_placeholder/g, req.params.selected_state );
 
 	       promiseCoal = new Promise( (resolve, reject) => {
@@ -469,6 +470,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				template = template.replace( /next_placeholder/g, energy_list[(curr + 1) % 5] );
 				template = template.replace( 'prev_button', energy_types[energy_list[(curr + 4) % 5]] );
 				template = template.replace( 'next_button', energy_types[energy_list[(curr + 1) % 5]] );
+				template = template.replace( 'No Image', 'Image of ' + req.params.selected_energy_type );
 
 				
 		
