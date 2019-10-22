@@ -27,7 +27,7 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 app.use(express.static(public_dir));
 
 
-var statesList = [	'AL', 'AK', 'AZ', 'AR', 'CA', 
+var statesList = [	'AK', 'AL', 'AZ', 'AR', 'CA', 
 				'CO', 'CT', 'DC', 'DE', 'FL', 
 				'GA', 'HI', 'ID', 'IL', 'IN', 
 				'IA', 'KS', 'KY', 'LA', 'ME', 
@@ -144,6 +144,13 @@ app.get('/', (req, res) => {
 // GET request handler for '/year/*'
 app.get('/year/:selected_year', (req, res) => {
 	
+	if(req.params.selected_year < 1960 || req.params.selected_year > 2017  ){
+		console.log(req.params.selected_state);
+		res.writeHead(404, {'Content-Type': 'text/plain'});
+		res.write( "404 ERROR: Unable to find content for year: " + req.params.selected_year );
+		res.end();
+	}
+	
     ReadFile(path.join(template_dir, 'year.html')).then((template) => {
 		let response = template;
 		var prev;
@@ -158,16 +165,11 @@ app.get('/year/:selected_year', (req, res) => {
 			next = 1960;
 		}			
 
-		
-
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
-		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_year + ' US Energy Consumption</title>');
 		template = template.replace( 'prev_placeholder">Prev</a>',  prev + '">' + prev + '</a>' );
 		template = template.replace( 'next_placeholder">Next</a>',  next + '">' + next + '</a>' );
 		template = template.replace( /US Energy Consumption/g, req.params.selected_year + ' US Energy Consumption');
 		template = template.replace( /year_placeholder/g , req.params.selected_year );
-
-	
 	   
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
@@ -177,12 +179,12 @@ app.get('/year/:selected_year', (req, res) => {
 		});
 	
 	       
-	    promiseNatural = new Promise( (resolve, reject) => {
+		promiseNatural = new Promise( (resolve, reject) => {
 		       db.all( `SELECT natural_gas FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-	    });
+		});
 	       
 		promiseNuclear = new Promise( (resolve, reject) => {
 		       db.all( `SELECT nuclear FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
@@ -196,9 +198,9 @@ app.get('/year/:selected_year', (req, res) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
 			});
-	    });
+		});
 	       
-	    promiseRenewable = new Promise( (resolve, reject) => {
+		promiseRenewable = new Promise( (resolve, reject) => {
 		       db.all( `SELECT renewable FROM Consumption WHERE year = ` + req.params.selected_year, [], (err, data) => {
 				if (err) { return console.error(err.message); }
 				resolve(data);
@@ -211,8 +213,6 @@ app.get('/year/:selected_year', (req, res) => {
 				resolve(data);
 			});
 		});
-
-
 
 		Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable, promiseTable]).then( data =>{
 			var total = 0;
@@ -258,9 +258,18 @@ app.get('/year/:selected_year', (req, res) => {
 
 // GET request handler for '/state/*'
 app.get('/state/:selected_state', (req, res) => {
+	
+	if( !statesList.includes( req.params.selected_state) ){
+		console.log(req.params.selected_state);
+		res.writeHead(404, {'Content-Type': 'text/plain'});
+		res.write( "404 ERROR: Unable to find content for state: " + req.params.selected_state );
+		res.end();
+	}
+
 	ReadFile(path.join(template_dir, 'state.html')).then((template) => {
 		var prev;
 		var next;
+
 		
 		prev = statesList.indexOf(req.params.selected_state) - 1;
 		if( prev < 0) prev = 50;
@@ -273,7 +282,19 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
 		template = template.replace( 'noimage', req.params.selected_state);
+		template = template.replace( 'NoImageAlt', 'State image of '+ req.params.selected_state);
 		template = template.replace( /state_placeholder/g, req.params.selected_state );
+		template = template.replace( 'NoImageAlt', 'State Image of ' + req.params.selected_state );
+		
+		promiseStates = new Promise( (resolve, reject) => {
+			db.all( `SELECT state_name FROM States WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
+				if (err) { return console.error(err.message); }
+				resolve(data);
+			});
+			
+			
+			
+		});
 
 	       promiseCoal = new Promise( (resolve, reject) => {
 		       db.all( `SELECT coal FROM Consumption WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
@@ -318,7 +339,7 @@ app.get('/state/:selected_state', (req, res) => {
 			});
 		});
 
-		Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable, promiseTable]).then( data =>{
+		Promise.all( [promiseCoal ,promiseNatural, promiseNuclear, promisePetroleum, promiseRenewable, promiseTable, promiseStates]).then( data =>{
 			var array = [];
 			var tableString = '';
 			total = 0;
@@ -349,6 +370,8 @@ app.get('/state/:selected_state', (req, res) => {
 				total = data[5][year].coal + data[5][year].natural_gas + data[5][year].nuclear + data[5][year].petroleum + data[5][year].renewable;
 				tableString += '<tr><th>' + data[5][year].year + '</th><th>' + data[5][year].coal + '</th><th>' + data[5][year].natural_gas + '</th><th>' + data[5][year].nuclear + '</th><th>' + data[5][year].petroleum + '</th><th>' + data[5][year].renewable + '</th><th>' + total + '</th></tr>\n';
 			}
+			template = template.replace( "full_placeholder", data[6][0].state_name );
+			
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
 			response = template;
@@ -363,47 +386,15 @@ app.get('/state/:selected_state', (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
+	
+	if( !energy_list.includes( req.params.selected_energy_type) ){
+		console.log(req.params.selected_state);
+		res.writeHead(404, {'Content-Type': 'text/plain'});
+		res.write( "404 ERROR: Unable to find content for energy type: " + req.params.selected_energy_type );
+		res.end();
+	}
 	
 	ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
 		var type = req.params.selected_energy_type;
@@ -419,10 +410,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				'OH':[], 'OK':[], 'OR':[], 'PA':[], 'RI':[], 
 				'SC':[], 'SD':[], 'TN':[], 'TX':[], 'UT':[], 
 				'VT':[], 'VA':[], 'WA':[], 'WV':[], 'WI':[], 'WY':[]
-				};
-		
-		template = template.replace( /type_placeholder/g, capitalize(req.params.selected_energy_type) );
-		
+				};		
       
 		promiseTable = new Promise( (resolve, reject) => {
 			db.all( `SELECT year, state_abbreviation, ` + req.params.selected_energy_type + ` FROM Consumption ORDER BY year ASC, state_abbreviation ASC` , [], (err, data) => {
@@ -436,7 +424,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				for( var i=0; i<data.length; i++){
 					
 					if( data[i].year != prevYear ){
-						//console.log( "last state:" + data[i].state_abbreviation );
 						result += '<th>' + total + '</th></tr>';
 						total = 0;
 						counter = 0;
@@ -454,24 +441,33 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 					
 				}
 				result += '<th>' + total + '</th></tr>';
-
-				template = template.replace( '<!-- Data to be inserted here -->', result );
-				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
 				
 				var curr = 0;
 				for(let i=0; i < energy_list.length; i++){
 					if(energy_list[i] == req.params.selected_energy_type){
 						curr = i;
-						console.log( "curr:" + req.params.selected_energy_type);
+<<<<<<< HEAD
+=======
+						// console.log( "curr:" + req.params.selected_energy_type);
+>>>>>>> a2acce90bd895d8d4ecd7b9dd7d766f78a6973e2
 					}	
 				}
+				
+				template = template.replace( 'img_placeholder', req.params.selected_energy_type );
+				template = template.replace( /type_placeholder/g, energy_types[req.params.selected_energy_type] );
+				template = template.replace( '<!-- Data to be inserted here -->', result );
+				template = template.replace( 'arr_placeholder', JSON.stringify(dataObj));
 				template = template.replace( /prev_placeholder/g, energy_list[(curr + 4) % 5] );
 				template = template.replace( /next_placeholder/g, energy_list[(curr + 1) % 5] );
 				template = template.replace( 'prev_button', energy_types[energy_list[(curr + 4) % 5]] );
 				template = template.replace( 'next_button', energy_types[energy_list[(curr + 1) % 5]] );
+				template = template.replace( 'No Image', 'Image of ' + req.params.selected_energy_type );
+<<<<<<< HEAD
+				template = template.replace( 'Consumption Snapshot', capitalize( energy_types[req.params.selected_energy_type] ) + ' Consumption Snapshot' );
+=======
+				template = template.replace( 'Consumption Snapshot', capitalize(req.params.selected_energy_type) + ' Consumption Snapshot');
+>>>>>>> a2acce90bd895d8d4ecd7b9dd7d766f78a6973e2
 
-				
-		
 				let response = template;
 				WriteHtml(res, response);
 			});
@@ -480,40 +476,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 		Write404Error(res);
 	});
 });//energy-type
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
