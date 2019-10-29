@@ -158,11 +158,11 @@ app.get('/year/:selected_year', (req, res) => {
 		prev = (Number(req.params.selected_year) - 1);
 		next = (Number(req.params.selected_year) + 1);
 		if (prev < 1960) {
-			prev = 2017;
+			prev = 1960;
 		}
 
 		if (next > 2017){
-			next = 1960;
+			next = 2017;
 		}			
 
 		template = template.replace( '<h2>National Snapshot</h2>', '<h2>' + req.params.selected_year + ' National Snapshot</h2>');
