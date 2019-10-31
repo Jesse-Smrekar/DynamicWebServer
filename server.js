@@ -283,6 +283,7 @@ app.get('/state/:selected_state', (req, res) => {
 		template = template.replace( 'noimage', req.params.selected_state);
 		template = template.replace( /state_placeholder/g, req.params.selected_state );
 		template = template.replace( 'NoImageAlt', 'State Image of ' + req.params.selected_state );
+		template = template.replace('description', 'Image by Pixabay');  
 		
 		promiseStates = new Promise( (resolve, reject) => {
 			db.all( `SELECT state_name FROM States WHERE state_abbreviation = '` + req.params.selected_state + `'`, [], (err, data) => {
