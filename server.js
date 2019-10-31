@@ -276,7 +276,7 @@ app.get('/state/:selected_state', (req, res) => {
 		next = statesList.indexOf(req.params.selected_state) + 1;
 		if( next > 50 ) next = 0; 
 		
-		template = template.replace( '<h2>Yearly Snapshot</h2>', '<h2>' + req.params.selected_state + ' Yearly Snapshot</h2>');
+		
 		template = template.replace( '<title>US Energy Consumption</title>', '<title>' + req.params.selected_state + ' US Energy Consumption</title>');
 		template = template.replace( 'prev_placeholder">XX</a>',  (statesList[prev]) + '">' + (statesList[prev]) + '</a>' );
 		template = template.replace( 'next_placeholder">XX</a>',  (statesList[next]) + '">' + (statesList[next]) + '</a>' );
@@ -370,6 +370,7 @@ app.get('/state/:selected_state', (req, res) => {
 				tableString += '<tr><th>' + data[5][year].year + '</th><th>' + data[5][year].coal + '</th><th>' + data[5][year].natural_gas + '</th><th>' + data[5][year].nuclear + '</th><th>' + data[5][year].petroleum + '</th><th>' + data[5][year].renewable + '</th><th>' + total + '</th></tr>\n';
 			}
 			template = template.replace( "full_placeholder", data[6][0].state_name );
+			template = template.replace( '<h2>Yearly Snapshot</h2>', '<h2>' + data[6][0].state_name + ' Yearly Snapshot</h2>');
 			
 			template = template.replace( "<!-- Data to be inserted here -->", tableString );
 					 
