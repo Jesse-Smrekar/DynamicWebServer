@@ -459,7 +459,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 				template = template.replace( 'next_button', energy_types[energy_list[(curr + 1) % 5]] );
 				template = template.replace( 'No Image', 'Image of ' + req.params.selected_energy_type );
 				template = template.replace( 'Consumption Snapshot', capitalize( energy_types[req.params.selected_energy_type] ) + ' Consumption Snapshot' );
-
+				template = template.replace('description', 'Image by Pixabay');  
 				let response = template;
 				WriteHtml(res, response);
 			});
